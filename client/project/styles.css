@@ -39,14 +39,12 @@ section {
 }
 
 .star {
-  margin-left: 10px;
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
   font-size: 1em;
   color: rgb(184, 133, 3);
   cursor: pointer;
-}
-
-button.star {
-  margin-left: 10px;
 }
 
 .repos {
@@ -57,6 +55,7 @@ button.star {
 }
 
 .repo {
+  position: relative;
   border: solid 1px #8FD173;
   padding: 0.75rem 1rem;
   word-wrap: break-word;
@@ -68,13 +67,13 @@ button.star {
 }
 
 .repo h3 a {
+  text-decoration: none;
   color: #108410;
-  text-decoration: underline;
 }
 
 .repo h3 a:hover {
   color: #108410;
-  text-decoration: none;
+  text-decoration: underline;
 }
 
 .repo h3 a:visited {

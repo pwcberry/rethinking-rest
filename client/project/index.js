@@ -22,6 +22,9 @@ let queryRepoList = `
     repos:repositories(first:20, orderBy:{ field: UPDATED_AT, direction:DESC }) {
       totalCount
       nodes {
+        id
+        isPrivate
+        viewerHasStarred
         name
         url
         updatedAt
@@ -34,17 +37,38 @@ let queryRepoList = `
 ${commitFragment}
 `;
 
-let mutationAddStar;
+let mutationAddStar = `
+mutation ($id: ID!) {
+  addStar(input: { starrableId: $id}){
+    starrable {
+      ...on Repository {
+        name
+        viewerHasStarred
+      }
+    }
+  }
+}
+`;
 
-let mutationRemoveStar;
+let mutationRemoveStar = `
+mutation ($id: ID!) {
+  removeStar(input: { starrableId: $id}){
+    starrable {
+      ...on Repository {
+        name
+        viewerHasStarred
+      }
+    }
+  }
+}
+`;
 
 function gqlRequest(query, variables, onSuccess) {
-  // MAKE GRAPHQL REQUEST
   $.post({
     url: "https://api.github.com/graphql",
     contentType: "application/json",
     headers: {
-      Authorization: "bearer d0de2af81acaec925daa36ac2520395324c8f606"
+      Authorization: "bearer 053bc21a2a4cbadf4cf3da1d21158a03fa5b9e9c"
     },
     data: JSON.stringify({
       query,
@@ -52,23 +76,38 @@ function gqlRequest(query, variables, onSuccess) {
     }),
     success: (response) => {
       const {
-        data
+        data, errors
       } = response;
-      if (data) {
+
+      if (!errors && data) {
         onSuccess(data);
+      } else if (errors) {
+        console.error(errors);
       }
     },
     error: (error) => console.error(error)
   });
 }
 
-function starHandler(element) {
-  // STAR OR UNSTAR REPO BASED ON ELEMENT STATE
+function starHandler(event) {
+  const element = $(event.target);
+  if (element.hasClass("star")) {
+      const parent = element.parent();
+      const hasStarred = parent.data('has-star');
+      const id = parent.data('id');
 
+      const onSuccess = (response) => {
+        const { viewerHasStarred } = hasStarred ? response.removeStar.starrable : response.addStar.starrable;
+        element.text(viewerHasStarred ? fullStar : emptyStar);
+        parent.data('has-star', viewerHasStarred);
+      };
+      
+      const query = hasStarred ? mutationRemoveStar : mutationAddStar;
+      gqlRequest(query, { id }, onSuccess);
+  }
 }
 
 $(window).ready(function () {
-  // GET NAME AND REPOSITORIES FOR VIEWER
   gqlRequest(queryRepoList, {}, (data) => {
     $("header h2").text(data.viewer.name);
     const {
@@ -79,11 +118,17 @@ $(window).ready(function () {
       const container = $(".repos");
       container.empty();
       repos.nodes.forEach(node => {
-        container.append(`<article class="repo">
+        const star = node.viewerHasStarred ? fullStar : emptyStar;
+        const element = $(`<article class="repo">
           <h3><a href="${node.url}" target="_blank" rel="noreferrer">${node.name}</a></h3>
+          <span class="star">${star}</span>
           <p>Last updated: ${dateFns.format(node.updatedAt, 'D MMM YYYY, h:mm a')}</p>
           <p>${node.ref.target.history.totalCount} commits</p>
-        </li>`);
+        </article>`).on('click', starHandler).data({
+          'has-star': node.viewerHasStarred,
+          'id': node.id
+        });
+        container.append(element);
       });
     }
   })
