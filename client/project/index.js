@@ -44,8 +44,7 @@ function gqlRequest(query, variables, onSuccess) {
     url: "https://api.github.com/graphql",
     contentType: "application/json",
     headers: {
-      Authorization: "bearer 57108de1e9fddd8e3204c15d6350d649aa6a4673",
-      // Authorization: "token 27dc55fca8ddf1fbb71c819fa43d72145398825a"
+      Authorization: "bearer d0de2af81acaec925daa36ac2520395324c8f606"
     },
     data: JSON.stringify({
       query,
@@ -81,7 +80,8 @@ $(window).ready(function () {
       container.empty();
       repos.nodes.forEach(node => {
         container.append(`<article class="repo">
-          <h3>${node.name}</h3>
+          <h3><a href="${node.url}" target="_blank" rel="noreferrer">${node.name}</a></h3>
+          <p>Last updated: ${dateFns.format(node.updatedAt, 'D MMM YYYY, h:mm a')}</p>
           <p>${node.ref.target.history.totalCount} commits</p>
         </li>`);
       });

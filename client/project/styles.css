@@ -67,6 +67,20 @@ button.star {
   margin-top: 0;
 }
 
+.repo h3 a {
+  color: #108410;
+  text-decoration: underline;
+}
+
+.repo h3 a:hover {
+  color: #108410;
+  text-decoration: none;
+}
+
+.repo h3 a:visited {
+  color: #108410;
+}
+
 .repo p:last-child {
   margin-bottom: 0;
 }
